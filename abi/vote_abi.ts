@@ -7,6 +7,20 @@ export const VOTE_ABI = [
     "interface_name": "vote::IVote"
   },
   {
+    "type": "enum",
+    "name": "core::bool",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
+      }
+    ]
+  },
+  {
     "type": "interface",
     "name": "vote::IVote",
     "items": [
@@ -104,6 +118,22 @@ export const VOTE_ABI = [
         "outputs": [
           {
             "type": "core::integer::u64"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "has_voted",
+        "inputs": [
+          {
+            "name": "voter_address",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
           }
         ],
         "state_mutability": "view"

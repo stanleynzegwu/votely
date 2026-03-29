@@ -14,19 +14,20 @@ import {
 } from 'recharts';
 
 interface VotingResultsProps {
-  candidates: Candidate[];
+  candidates: {0: bigint, 1: bigint}[] | undefined;
+  mockCandidates: Candidate[];
   totalVotes: number;
-  electionState?: ElectionState;
+  electionState?: number | undefined;
 }
 
 const colors = ['oklch(0.6 0.25 270)', 'oklch(0.55 0.22 290)', 'oklch(0.5 0.2 310)', 'oklch(0.65 0.23 250)'];
 
-export function VotingResults({ candidates, totalVotes, electionState = 1 }: VotingResultsProps) {
-  const hasNoCandidates = candidates.length === 0;
-  const chartData = candidates.map((candidate) => ({
-    name: candidate.name.split(' ')[0],
-    votes: candidate.votes,
-    percentage: totalVotes > 0 ? ((candidate.votes / totalVotes) * 100).toFixed(1) : 0,
+export function VotingResults({ candidates, mockCandidates, totalVotes, electionState = 1 }: VotingResultsProps) {
+  const hasNoCandidates = candidates?.length === 0;
+  const chartData = candidates?.map((candidate) => ({
+    name: Number(candidate[0]),
+    votes: Number(candidate[1]),
+    percentage: totalVotes > 0 ? ((Number(candidate[0]) / totalVotes) * 100).toFixed(1) : 0,
   }));
 
   // Show empty state if no candidates
@@ -90,7 +91,7 @@ export function VotingResults({ candidates, totalVotes, electionState = 1 }: Vot
                 labelStyle={{ color: 'oklch(0.95 0.01 0)' }}
               />
               <Bar dataKey="votes" radius={[8, 8, 0, 0]}>
-                {chartData.map((entry, index) => (
+                {chartData?.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                 ))}
               </Bar>
@@ -99,9 +100,9 @@ export function VotingResults({ candidates, totalVotes, electionState = 1 }: Vot
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {candidates.map((candidate, index) => (
+          {candidates?.map((candidate, index) => (
             <div
-              key={candidate.id}
+              key={candidate[0]}
               className="p-3 bg-background/50 rounded-lg border border-border/30"
             >
               <div className="flex items-center gap-2 mb-1">
@@ -109,11 +110,12 @@ export function VotingResults({ candidates, totalVotes, electionState = 1 }: Vot
                   className="w-2 h-2 rounded-full"
                   style={{ backgroundColor: colors[index % colors.length] }}
                 />
-                <p className="text-xs text-muted-foreground truncate">{candidate.name.split(' ')[0]}</p>
+                {/* <p className="text-xs text-muted-foreground truncate">{candidate.name.split(' ')[0]}</p> */}
+                <p className="text-xs text-muted-foreground truncate">{candidate[0]}</p>
               </div>
-              <p className="text-sm font-bold text-foreground">{candidate.votes}</p>
+              <p className="text-sm font-bold text-foreground">{Number(candidate[1])}</p>
               <p className="text-xs text-accent">
-                {totalVotes > 0 ? ((candidate.votes / totalVotes) * 100).toFixed(1) : 0}%
+                {totalVotes > 0 ? ((Number(candidate[1]) / totalVotes) * 100).toFixed(1) : 0}%
               </p>
             </div>
           ))}

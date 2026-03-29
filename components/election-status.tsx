@@ -2,12 +2,13 @@
 
 import { VOTE_ABI } from '@/abi/vote_abi';
 import { Card } from '@/components/ui/card';
-import { Election, ElectionState } from '@/lib/mock-data';
-import { VOTE_CONTRACT_ADDRESS } from '@/lib/utils';
-import { useAccount, useContract, useReadContract, useSendTransaction } from "@starknet-react/core";
+import { mockElection } from '@/lib/mock-data';
+import { Election_S } from '@/lib/types';
+import { calculate_total_votes, VOTE_CONTRACT_ADDRESS } from '@/lib/utils';
+import { useReadContract } from "@starknet-react/core";
 
 interface ElectionStatusProps {
-  election: Election;
+  election: Election_S | null;
 }
 
 export function ElectionStatus({ election }: ElectionStatusProps) {
@@ -46,19 +47,25 @@ export function ElectionStatus({ election }: ElectionStatusProps) {
     }
   };
 
-  const getStateLabel = (state: ElectionState): string => {
-    return { 0: 'Not Started', 1: 'Ongoing', 2: 'Ended' }[state];
+  const getStateLabel = (state: number): string => {
+    return (
+      {
+        0: 'Not Started',
+        1: 'Ongoing',
+        2: 'Ended',
+      }[state] ?? 'Unknown'
+    );
   };
 
   const statusDot = (
     <div className="flex items-center gap-2">
       <div
         className={`w-3 h-3 rounded-full ${
-          election.state === 1 ? 'bg-accent animate-pulse' : 'bg-muted'
+          Number(election?.election_state) === 1 ? 'bg-accent animate-pulse' : 'bg-muted'
         }`}
       />
       <span className={`capitalize ${getStatusColor(Number(election_state) ?? undefined)}`}>
-        {getStateLabel(election.state)}
+        {getStateLabel(Number(election?.election_state))}
       </span>
     </div>
   );
@@ -68,10 +75,10 @@ export function ElectionStatus({ election }: ElectionStatusProps) {
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-semibold text-primary mb-1">
-            {election.title}
+            {mockElection.title}
           </h3>
           <p className="text-sm text-muted-foreground line-clamp-2">
-            {election.description}
+            {mockElection.description}
           </p>
         </div>
 
@@ -82,11 +89,11 @@ export function ElectionStatus({ election }: ElectionStatusProps) {
         <div className="grid grid-cols-2 gap-3">
           <div className="p-3 bg-background/50 rounded-lg border border-border/30">
             <p className="text-xs text-muted-foreground mb-1">Total Votes</p>
-            <p className="text-xl font-bold text-accent">{election.totalVotes}</p>
+            <p className="text-xl font-bold text-accent">{calculate_total_votes(election)}</p>
           </div>
           <div className="p-3 bg-background/50 rounded-lg border border-border/30">
             <p className="text-xs text-muted-foreground mb-1">Candidates</p>
-            <p className="text-xl font-bold text-primary">{election.candidates.length}</p>
+            <p className="text-xl font-bold text-primary">{election?.candidates_length}</p>
           </div>
         </div>
 
@@ -94,13 +101,13 @@ export function ElectionStatus({ election }: ElectionStatusProps) {
           <div>
             <p className="text-muted-foreground mb-1">Start Date</p>
             <p className="text-foreground font-semibold">
-              {election.startDate.toLocaleDateString()}
+              {mockElection.startDate.toLocaleDateString()}
             </p>
           </div>
           <div>
             <p className="text-muted-foreground mb-1">End Date</p>
             <p className="text-foreground font-semibold">
-              {election.endDate.toLocaleDateString()}
+              {mockElection.endDate.toLocaleDateString()}
             </p>
           </div>
         </div>

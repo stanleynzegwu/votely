@@ -1,24 +1,31 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Toaster } from 'sonner';
+import { toast, Toaster } from 'sonner';
 import { Header } from '@/components/header';
 import { ElectionStatus } from '@/components/election-status';
 import { CandidateCard } from '@/components/candidate-card';
 import { VotingResults } from '@/components/voting-results';
 import { AdminPanel } from '@/components/admin-panel';
-import { mockElection, candidateTemplates, ElectionState } from '@/lib/mock-data';
+import { mockElection, candidateTemplates, ElectionState, mockCandidate } from '@/lib/mock-data';
 import { Card } from '@/components/ui/card';
-import { useReadContract } from '@starknet-react/core';
+import { useAccount, useContract, useReadContract, useSendTransaction } from '@starknet-react/core';
 import { VOTE_ABI } from '@/abi/vote_abi';
-import { VOTE_CONTRACT_ADDRESS } from '@/lib/utils';
+import { calculate_total_votes, get_all_candidates, VOTE_CONTRACT_ADDRESS } from '@/lib/utils';
+import { Election_S } from '@/lib/types';
+import { Footer } from '@/components/Foooter';
 
 export default function Home() {
   const [election, setElection] = useState(mockElection);
-  const [hasVoted, setHasVoted] = useState(false);
+  const [election_s, setElection_s] = useState<Election_S | null>(null);
   const [currentTime, setCurrentTime] = useState('');
 
   //////////////
+  const { address } = useAccount();
+  const { contract } = useContract({
+    abi: VOTE_ABI,
+    address: VOTE_CONTRACT_ADDRESS,
+  });
   const { data: election_state, isLoading, refetch: refetchCount, isFetching, error } = useReadContract({
     abi: VOTE_ABI,
     functionName: "get_election_state",
@@ -40,57 +47,72 @@ export default function Home() {
     args: [], // empty array because , no input for the function get_candidates_length
     refetchInterval: 10000,
   })
+  const { data: hasVoted } = useReadContract({
+    abi: VOTE_ABI,
+    functionName: "has_voted",
+    address: VOTE_CONTRACT_ADDRESS,
+    args: [address],
+    refetchInterval: 10000,
+  })
   console.log(calculate_votes)
+
+  useEffect(() => {
+    const election_s = {
+      candidates_length,
+      election_state,
+      calculate_votes
+    }
+  setElection_s(election_s)
+  },[candidates_length, election_state, calculate_votes])
+
+  const { send: sendVote } = useSendTransaction({});
   /////////
 
-  const handleVote = (candidateId: string) => {
+  const handleVote = (candidateId: bigint) => {
+    if (!contract || !address) {
+      toast.error('Wallet not connected');
+      return;
+    }
     // Only allow voting if election is ongoing (state 1)
-    if (election.state !== 1) {
+    if (Number(election_state) !== 1) {
       return;
     }
 
-    // Update candidate votes
-    const updatedCandidates = election.candidates.map((candidate) => {
-      if (candidate.id === candidateId) {
-        return { ...candidate, votes: candidate.votes + 1 };
-      }
-      return candidate;
-    });
+    try {
+      sendVote([
+        contract.populate("vote", [candidateId]),
+      ]);
 
-    const updatedElection = {
-      ...election,
-      candidates: updatedCandidates,
-      totalVotes: election.totalVotes + 1,
-    };
-
-    setElection(updatedElection);
-    setHasVoted(true);
+      toast.success('Voted successfully');
+    } catch {
+      toast.error('Transaction failed');
+    }
   };
 
-  const handleAddCandidate = (candidateId: string) => {
-    // Only allow adding if election hasn't started (state 0)
-    if (election.state !== 0) {
-      return;
-    }
+  // const handleAddCandidate = (candidateId: string) => {
+  //   // Only allow adding if election hasn't started (state 0)
+  //   if (election.state !== 0) {
+  //     return;
+  //   }
 
-    // Find the candidate template
-    const template = candidateTemplates.find((c) => c.id === candidateId);
-    if (!template) {
-      return;
-    }
+  //   // Find the candidate template
+  //   const template = candidateTemplates.find((c) => c.id === candidateId);
+  //   if (!template) {
+  //     return;
+  //   }
 
-    // Check if already added
-    if (election.candidates.some((c) => c.id === candidateId)) {
-      return;
-    }
+  //   // Check if already added
+  //   if (election.candidates.some((c) => c.id === candidateId)) {
+  //     return;
+  //   }
 
-    // const updatedElection = {
-    //   ...election,
-    //   candidates: [...election.candidates, template],
-    // };
+  //   // const updatedElection = {
+  //   //   ...election,
+  //   //   candidates: [...election.candidates, template],
+  //   // };
 
-    // setElection(updatedElection);
-  };
+  //   // setElection(updatedElection);
+  // };
 
   const handleStateChange = (newState: ElectionState) => {
     setElection({
@@ -126,24 +148,25 @@ export default function Home() {
 
         {/* Election Status */}
         <div className="mb-8">
-          <ElectionStatus election={election} />
+          <ElectionStatus election={election_s} />
         </div>
 
         {/* Voting Section - Only show if election is ongoing (state 1) */}
-        {election.state === 1 && (
+        {Number(Number) === 1 && (
           <div className="mb-8 animate-slide-up">
             <h3 className="text-2xl font-bold text-foreground mb-4">Cast Your Vote</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {election.candidates.map((candidate) => (
+              {get_all_candidates(election_s)?.map((candidate) => (
                 <div
-                  key={candidate.id}
+                  key={candidate[0]}
                   className="animate-slide-up"
                 >
                   <CandidateCard
                     candidate={candidate}
+                    mockCandidate={mockCandidate}
                     onVote={handleVote}
                     hasVoted={hasVoted}
-                    totalVotes={election.totalVotes}
+                    totalVotes={calculate_total_votes(election_s)}
                   />
                 </div>
               ))}
@@ -152,7 +175,7 @@ export default function Home() {
         )}
 
         {/* Not Started Message */}
-        {election.state === 0 && (
+        {Number(Number) === 0 && (
           <div className="mb-8 animate-slide-up">
             <Card className="glass-primary p-8 text-center">
               <h3 className="text-xl font-semibold text-foreground mb-2">
@@ -169,20 +192,22 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <div className="lg:col-span-2">
             <VotingResults
-              candidates={election.candidates}
-              totalVotes={election.totalVotes}
-              electionState={election.state}
+              candidates={get_all_candidates(election_s)}
+              mockCandidates={election.candidates}
+              totalVotes={calculate_total_votes(election_s)}
+              electionState={Number(election_s?.election_state)}
             />
           </div>
-          <AdminPanel
-            election={election}
+          {/* <AdminPanel
+            election={election_s}
             onAddCandidate={handleAddCandidate}
             onStateChange={handleStateChange}
-          />
+          /> */}
+          <AdminPanel election={election_s} />
         </div>
 
         {/* Election Ended Message */}
-        {election.state === 2 && (
+        {Number(Number) === 2 && (
           <div className="mb-8 animate-slide-up">
             <Card className="glass-primary p-8 text-center bg-accent/10 border-accent/30">
               <h3 className="text-xl font-semibold text-accent mb-2">
@@ -196,26 +221,7 @@ export default function Home() {
         )}
 
         {/* Footer Info */}
-        {currentTime && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 rounded-lg border border-border/30 bg-background/50">
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground mb-1">Smart Contract</p>
-              <p className="text-sm font-mono text-accent truncate">0x0123...abcd</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground mb-1">Election State</p>
-              <p className="text-sm font-semibold text-foreground capitalize">
-                {getStateLabel(election.state)}
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground mb-1">Last Updated</p>
-              <p className="text-sm font-semibold text-foreground">
-                {currentTime}
-              </p>
-            </div>
-          </div>
-        )}
+        <Footer />
       </main>
     </div>
   );

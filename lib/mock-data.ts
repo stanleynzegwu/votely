@@ -95,10 +95,19 @@ export const mockElection: Election = {
   id: '1',
   title: '2024 Leadership Election',
   description: 'Vote for your preferred candidate to lead our organization into the future',
-  state: 0, // Start with "Not Started" state
+  state: 1,
   startDate: new Date('2024-01-01'),
   endDate: new Date('2024-01-31'),
   candidates: mockCandidates,
   totalVotes: mockCandidates.reduce((sum, c) => sum + c.votes, 0),
   maxCandidates: 5,
 };
+
+
+export const mockCandidate:Candidate =  {
+  id: '1',
+  name: 'Alice Johnson',
+  platform: 'Climate action and renewable energy',
+  votes: 0,
+  image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
+}
