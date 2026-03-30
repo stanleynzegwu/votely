@@ -1,7 +1,6 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
-import { Candidate, ElectionState } from '@/lib/mock-data';
 import {
   BarChart,
   Bar,
@@ -15,17 +14,16 @@ import {
 
 interface VotingResultsProps {
   candidates: {0: bigint, 1: bigint}[] | undefined;
-  mockCandidates: Candidate[];
   totalVotes: number;
   electionState?: number | undefined;
 }
 
 const colors = ['oklch(0.6 0.25 270)', 'oklch(0.55 0.22 290)', 'oklch(0.5 0.2 310)', 'oklch(0.65 0.23 250)'];
 
-export function VotingResults({ candidates, mockCandidates, totalVotes, electionState = 1 }: VotingResultsProps) {
+export function VotingResults({ candidates, totalVotes, electionState = 1 }: VotingResultsProps) {
   const hasNoCandidates = candidates?.length === 0;
   const chartData = candidates?.map((candidate) => ({
-    name: Number(candidate[0]),
+    name: `ID-${Number(candidate[0])}`,
     votes: Number(candidate[1]),
     percentage: totalVotes > 0 ? ((Number(candidate[0]) / totalVotes) * 100).toFixed(1) : 0,
   }));

@@ -14,6 +14,8 @@ import { VOTE_ABI } from '@/abi/vote_abi';
 import { calculate_total_votes, get_all_candidates, VOTE_CONTRACT_ADDRESS } from '@/lib/utils';
 import { Election_S } from '@/lib/types';
 import { Footer } from '@/components/Foooter';
+import { WinnerDisplay } from '@/components/winner-display';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
   const [election, setElection] = useState(mockElection);
@@ -114,6 +116,23 @@ export default function Home() {
   //   // setElection(updatedElection);
   // };
 
+  const handleResetElection = () => {
+    // Reset to initial state with default candidates and zero votes
+    const resetCandidates = election.candidates.map((candidate) => ({
+      ...candidate,
+      votes: 0,
+    }));
+
+    setElection({
+      ...election,
+      state: 0,
+      candidates: resetCandidates,
+      totalVotes: 0,
+    });
+
+    //setHasVoted(false);
+  };
+
   const handleStateChange = (newState: ElectionState) => {
     setElection({
       ...election,
@@ -152,7 +171,7 @@ export default function Home() {
         </div>
 
         {/* Voting Section - Only show if election is ongoing (state 1) */}
-        {Number(Number) === 1 && (
+        {Number(election_s?.election_state) === 1 && (
           <div className="mb-8 animate-slide-up">
             <h3 className="text-2xl font-bold text-foreground mb-4">Cast Your Vote</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -175,7 +194,7 @@ export default function Home() {
         )}
 
         {/* Not Started Message */}
-        {Number(Number) === 0 && (
+        {Number(election_s?.election_state) === 0 && (
           <div className="mb-8 animate-slide-up">
             <Card className="glass-primary p-8 text-center">
               <h3 className="text-xl font-semibold text-foreground mb-2">
@@ -193,7 +212,6 @@ export default function Home() {
           <div className="lg:col-span-2">
             <VotingResults
               candidates={get_all_candidates(election_s)}
-              mockCandidates={election.candidates}
               totalVotes={calculate_total_votes(election_s)}
               electionState={Number(election_s?.election_state)}
             />
@@ -207,21 +225,31 @@ export default function Home() {
         </div>
 
         {/* Election Ended Message */}
-        {Number(Number) === 2 && (
-          <div className="mb-8 animate-slide-up">
+        {Number(election_s?.election_state) === 2 && (
+          <div className="mb-8 space-y-6 animate-slide-up">
+            <WinnerDisplay
+              candidates={get_all_candidates(election_s)}
+              totalVotes={calculate_total_votes(election_s)}
+            />
             <Card className="glass-primary p-8 text-center bg-accent/10 border-accent/30">
               <h3 className="text-xl font-semibold text-accent mb-2">
                 Election Concluded
               </h3>
               <p className="text-muted-foreground">
-                Thank you for participating. Results are finalized and displayed below.
+                Thank you for participating. Results are finalized and displayed above.
               </p>
+              <Button
+                onClick={handleResetElection}
+                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-foreground font-semibold"
+              >
+                Reset Election
+              </Button>
             </Card>
           </div>
         )}
 
         {/* Footer Info */}
-        <Footer />
+        <Footer electionState={Number(election_s?.election_state)}/>
       </main>
     </div>
   );

@@ -6,7 +6,7 @@ import { useAccount } from "@starknet-react/core";
 import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export function Footer() {
+export function Footer({electionState}:{electionState: number}) {
     const [election, setElection] = useState(mockElection);
     const [currentTime, setCurrentTime] = useState('');
     const [copied, setCopied] = useState(false);
@@ -23,9 +23,15 @@ export function Footer() {
         }
   };
 
-    const getStateLabel = (state: ElectionState): string => {
-      return { 0: 'Not Started', 1: 'Ongoing', 2: 'Ended' }[state];
-    };
+    const getStateLabel = (state: number): string => {
+        return (
+          {
+            0: 'Not Started',
+            1: 'Ongoing',
+            2: 'Ended',
+          }[state] ?? 'Unknown'
+    );
+  };
     
     return (
         <>
@@ -46,7 +52,7 @@ export function Footer() {
             <div className="text-center">
               <p className="text-xs text-muted-foreground mb-1">Election State</p>
               <p className="text-sm font-semibold text-foreground capitalize">
-                {getStateLabel(election.state)}
+                {getStateLabel(electionState)}
               </p>
             </div>
             <div className="text-center">
