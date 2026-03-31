@@ -11,36 +11,45 @@ import {
     voyager,
     paymasterRpcProvider,
     jsonRpcProvider,
+    Connector,
 } from "@starknet-react/core";
+import { WebWalletConnector } from "@argent/starknet-react-webwallet-connector";
 
 export function StarknetProvider({ children }: { children: React.ReactNode }) {
-    const { connectors } = useInjectedConnectors({
-        // Show these connectors if the user has no connector installed.
+    const { connectors: injectedConnectors } = useInjectedConnectors({
         recommended: [ready(), braavos()],
-        // Hide recommended connectors if the user has any connector installed.
-        //includeRecommended: "onlyIfNoConnectors", // we had an issue where our wallets were not popping up, so we chnaged to always
         includeRecommended: "always",
-        // Randomize the order of the connectors.
-        // order: "random",
         order: "alphabetical",
     });
+
+    const webWalletConnector = new WebWalletConnector({
+        url: "https://web.hydrogen.argent47.net",
+    });
+
+    const connectors = [
+        ...injectedConnectors,
+        webWalletConnector as unknown as Connector,
+    ];
 
     return (
         <StarknetConfig
             autoConnect
             paymasterProvider={paymasterRpcProvider({
-                rpc: () => {
-                    return {
-                        nodeUrl: "https://sepolia.paymaster.avnu.fi",
-                        headers: { 'x-paymaster-api-key': process.env.AVNU_API_KEY ?? '' }
-                    }
-                }
+                rpc: () => ({
+                    nodeUrl: "https://sepolia.paymaster.avnu.fi",
+                    headers: { "x-paymaster-api-key": process.env.AVNU_API_KEY ?? "" },
+                }),
             })}
-            // chains={[mainnet, sepolia]}
             chains={[sepolia]}
-            // provider={publicProvider()}
+            // provider={jsonRpcProvider({
+            //     rpc: () => ({ nodeUrl: process.env.NEXT_PUBLIC_RPC_URL }),
+            // })}
             provider={jsonRpcProvider({
-                rpc: () => ({ nodeUrl: process.env.NEXT_PUBLIC_RPC_URL })
+                rpc: () => {
+                    const url = process.env.NEXT_PUBLIC_RPC_URL;
+                    if (!url) throw new Error("NEXT_PUBLIC_RPC_URL is not set");
+                    return { nodeUrl: url };
+                },
             })}
             connectors={connectors}
             explorer={voyager}

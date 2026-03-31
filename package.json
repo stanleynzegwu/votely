@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@argent/starknet-react-webwallet-connector": "^6.6.0",
     "@starknet-react/chains": "^5.0.3",
     "@starknet-react/core": "^5.0.3",
     "@vercel/analytics": "^2.0.1",
