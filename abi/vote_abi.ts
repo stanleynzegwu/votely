@@ -52,6 +52,13 @@ export const VOTE_ABI = [
       },
       {
         "type": "function",
+        "name": "reset_vote_state",
+        "inputs": [],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
         "name": "vote",
         "inputs": [
           {
@@ -137,6 +144,17 @@ export const VOTE_ABI = [
           }
         ],
         "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_election_id",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u64"
+          }
+        ],
+        "state_mutability": "view"
       }
     ]
   },
@@ -193,6 +211,18 @@ export const VOTE_ABI = [
   },
   {
     "type": "event",
+    "name": "vote::Vote::Election_Reset",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "new_election_id",
+        "type": "core::integer::u64",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
     "name": "vote::Vote::Event",
     "kind": "enum",
     "variants": [
@@ -214,6 +244,11 @@ export const VOTE_ABI = [
       {
         "name": "Election_Ended",
         "type": "vote::Vote::Election_Ended",
+        "kind": "nested"
+      },
+      {
+        "name": "Election_Reset",
+        "type": "vote::Vote::Election_Reset",
         "kind": "nested"
       }
     ]

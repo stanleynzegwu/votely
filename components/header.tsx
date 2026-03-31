@@ -19,22 +19,6 @@ export function Header() {
       setIsConnectOpen(true);
     }
   };
-  ///////
-  // const [isConnected, setIsConnected] = useState(false);
-  // const [address, setAddress] = useState('');
-  const [_isConnected, setIsConnected] = useState(false);
-  const [_address, setAddress] = useState('');
-
-  const handleConnect = () => {
-    const mockAddress = '0x' + Math.random().toString(16).substring(2, 42);
-    setAddress(mockAddress);
-    setIsConnected(true);
-  };
-
-  const handleDisconnect = () => {
-    setIsConnected(false);
-    setAddress('');
-  };
 
   return (
     <>

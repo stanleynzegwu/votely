@@ -107,7 +107,7 @@ export function WinnerDisplay({ candidates, totalVotes }: WinnerDisplayProps) {
                         key={candidate[0]} //candidateID
                         className="p-2 bg-background/50 rounded border border-border/30 flex items-center justify-between"
                       >
-                        <p className="text-sm text-foreground">{`ID: ${winners[0][0]}`}</p>
+                        <p className="text-sm text-foreground">{`ID: ${candidate[0]}`}</p>
                         <div className="flex gap-2">
                           <span className="text-xs font-semibold text-muted-foreground">
                              {candidate[1]} {/*candidate votes */}
